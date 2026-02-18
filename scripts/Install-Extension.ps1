@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSCommandPath)
-$vsixPath = Join-Path $repoRoot "dist\open-unity-0.1.0.vsix"
+$vsixPath = Join-Path $repoRoot "dist\open-unity-0.2.0.vsix"
 
 if (-not (Test-Path $vsixPath)) {
     Write-Error "VSIX not found at $vsixPath"
