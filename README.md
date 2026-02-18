@@ -1,6 +1,7 @@
 # Open Unity — VS Code Extension
 
 A lightweight VS Code extension that adds a **Unity** button to the status bar. Clicking it runs your project's `Open-UnityProject.ps1` script (or any custom script) to launch Unity with the correct project path.
+
 <img width="353" height="177" alt="image" src="https://github.com/user-attachments/assets/33e76e66-2eae-49c1-b7fd-0fab323e9191" />
 
 ## Quick Install (VSIX)
