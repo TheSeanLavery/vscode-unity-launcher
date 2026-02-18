@@ -1,0 +1,45 @@
+{
+  "name": "open-unity",
+  "displayName": "Open Unity",
+  "description": "Adds a status bar button to open the Unity project associated with the current workspace.",
+  "version": "0.1.0",
+  "publisher": "sean-lavery",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.70.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "openUnity.open",
+        "title": "Open Unity Project"
+      }
+    ],
+    "configuration": {
+      "title": "Open Unity",
+      "properties": {
+        "openUnity.scriptPath": {
+          "type": "string",
+          "default": "scripts/Open-UnityProject.ps1",
+          "description": "Workspace-relative path to the PowerShell script that opens Unity."
+        },
+        "openUnity.showInStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the Open Unity button in the status bar."
+        }
+      }
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sean-lavery/open-unity-extension"
+  }
+}
