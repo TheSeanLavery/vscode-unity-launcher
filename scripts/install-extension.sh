@@ -3,7 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
-VSIX_PATH="$REPO_ROOT/dist/open-unity-0.1.0.vsix"
+VSIX_PATH="$REPO_ROOT/dist/open-unity-0.2.0.vsix"
 
 if [ ! -f "$VSIX_PATH" ]; then
   echo "Error: VSIX not found at $VSIX_PATH"

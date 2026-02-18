@@ -3,6 +3,8 @@ const { exec } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
+const BUNDLED_SCRIPT = 'scripts/Open-UnityProject.ps1';
+
 /**
  * @param {vscode.ExtensionContext} context
  */
@@ -28,29 +30,20 @@ function activate(context) {
       return;
     }
 
-    const relativePath = config.get('scriptPath', 'scripts/Open-UnityProject.ps1');
-    const script = path.join(workspaceFolder, relativePath);
+    const script = resolveScript(context, workspaceFolder);
+    if (!script) return;
 
-    if (!fs.existsSync(script)) {
-      vscode.window.showErrorMessage(
-        `Open Unity: Script not found at "${script}". ` +
-        'Check the openUnity.scriptPath setting.'
-      );
-      return;
-    }
-
-    const shell = detectShell();
-    const command = buildCommand(shell, script);
+    const command = buildCommand(script, workspaceFolder);
 
     vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: 'Opening Unity project…',
+        title: 'Opening Unity project\u2026',
         cancellable: false
       },
       () =>
         new Promise((resolve) => {
-          exec(command, { cwd: workspaceFolder }, (err, stdout, stderr) => {
+          exec(command, { cwd: workspaceFolder }, (err, _stdout, stderr) => {
             if (err) {
               vscode.window.showErrorMessage(
                 `Open Unity: ${stderr || err.message}`
@@ -67,21 +60,53 @@ function activate(context) {
   context.subscriptions.push(cmd);
 }
 
-function detectShell() {
-  if (process.platform === 'win32') return 'powershell';
-  if (process.platform === 'darwin') return 'bash';
-  return 'bash';
+/**
+ * Resolves which script to run. If the user configured a custom path, use that
+ * (workspace-relative). Otherwise, use the script bundled inside the extension.
+ */
+function resolveScript(context, workspaceFolder) {
+  const config = vscode.workspace.getConfiguration('openUnity');
+  const inspected = config.inspect('scriptPath');
+
+  const hasUserOverride =
+    inspected.workspaceValue !== undefined ||
+    inspected.workspaceFolderValue !== undefined ||
+    inspected.globalValue !== undefined;
+
+  if (hasUserOverride) {
+    const rel = config.get('scriptPath');
+    const abs = path.join(workspaceFolder, rel);
+    if (!fs.existsSync(abs)) {
+      vscode.window.showErrorMessage(
+        `Open Unity: Custom script not found at "${abs}". Check the openUnity.scriptPath setting.`
+      );
+      return null;
+    }
+    return abs;
+  }
+
+  const bundled = path.join(context.extensionPath, BUNDLED_SCRIPT);
+  if (!fs.existsSync(bundled)) {
+    vscode.window.showErrorMessage(
+      `Open Unity: Bundled script missing at "${bundled}". The extension may be corrupted — try reinstalling.`
+    );
+    return null;
+  }
+  return bundled;
 }
 
-function buildCommand(shell, scriptPath) {
-  if (shell === 'powershell') {
-    return `powershell -ExecutionPolicy Bypass -File "${scriptPath}"`;
+/**
+ * Builds the shell command to execute the launch script.
+ * Passes -ProjectPath so the script targets the current workspace.
+ */
+function buildCommand(scriptPath, projectPath) {
+  if (process.platform === 'win32') {
+    return `powershell -ExecutionPolicy Bypass -File "${scriptPath}" -ProjectPath "${projectPath}"`;
   }
-  // On macOS/Linux, try pwsh first; fall back to bash if the script is .sh
   if (scriptPath.endsWith('.ps1')) {
-    return `pwsh -ExecutionPolicy Bypass -File "${scriptPath}"`;
+    return `pwsh -ExecutionPolicy Bypass -File "${scriptPath}" -ProjectPath "${projectPath}"`;
   }
-  return `bash "${scriptPath}"`;
+  return `bash "${scriptPath}" "${projectPath}"`;
 }
 
 function deactivate() {}
